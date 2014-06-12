@@ -40,6 +40,7 @@ class Wechatext
 	private $debug;
 	private $_logcallback;
 	private $_token;
+	public $errMsg = "";
 	
 	public function __construct($options)
 	{
@@ -50,6 +51,33 @@ class Wechatext
 		$this->_logcallback = isset($options['logcallback'])?$options['logcallback']:false;
 		$this->_cookiename = $this->_datapath.$this->_account;
 		$this->cookie = $this->getCookie($this->_cookiename);
+	}
+	
+	/**
+	 * 绑定开发接口
+	 * @param String $token 自定义Token
+	 * @param String $url 服务器URL
+	 * @return Boolean
+	 */
+	public function binding($token,$url)
+	{
+		$send_snoopy = new Snoopy; 
+		$post = array();
+		$post['callback_token'] = $token;
+		$post['url'] = $url;
+        $send_snoopy->referer = "https://mp.weixin.qq.com/advanced/advanced?action=interface&t=advanced/interface&token={$this->_token}&lang=zh_CN";
+		$send_snoopy->rawheaders['Cookie']= $this->cookie;
+		$submit = "https://mp.weixin.qq.com/advanced/callbackprofile?t=ajax-response&token={$this->_token}&lang=zh_CN";
+		$send_snoopy->submit($submit,$post);
+		$this->log($send_snoopy->results);
+		$json = json_decode($send_snoopy->results,true);
+		if ($json && $json['ret']==0){
+			$this->errMsg = 'success';
+			return true;
+		}else{
+			$this->errMsg = empty($json['msg'])?'':$json['msg'];
+			return false;
+		}
 	}
 
 	/**
