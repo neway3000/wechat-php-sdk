@@ -79,6 +79,33 @@ class Wechatext
 			return false;
 		}
 	}
+	
+	/**
+	 * 开启/关闭开发模式
+	 * @param boolean $turnOn true/false
+	 * @return boolean
+	 */
+	public function enableDev($turnOn = true)
+	{
+		$send_snoopy = new Snoopy; 
+		$post = array();
+		$post['flag'] = $turnOn;
+		$post['token'] = $url;
+		$post['type'] = 2;
+        $send_snoopy->referer = "https://mp.weixin.qq.com/advanced/advanced?action=dev&t=advanced/dev&token={$this->_token}&lang=zh_CN";
+		$send_snoopy->rawheaders['Cookie']= $this->cookie;
+		$submit = "https://mp.weixin.qq.com/misc/skeyform?form=advancedswitchform&lang=zh_CN";
+		$send_snoopy->submit($submit,$post);
+		$this->log($send_snoopy->results);
+		$json = json_decode($send_snoopy->results,true);
+		if ($json && $json['base_resp']['ret']==0){
+			$this->errMsg = 'success';
+			return true;
+		}else{
+			$this->errMsg = empty($json['base_resp']['err_msg'])?'':$json['base_resp']['err_msg'];
+			return false;
+		}
+	}
 
 	/**
 	 * 主动发消息
